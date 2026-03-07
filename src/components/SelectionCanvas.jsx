@@ -189,13 +189,35 @@ export default function SelectionCanvas({ imageSrc, onCropAll }) {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
 
-        <button onClick={translateAll}>
+        <button
+          onClick={translateAll}
+          style={{
+            padding: "6px 12px",
+            border: "1px solid #555",
+            borderRadius: 6,
+            background: "#2d2d2d",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: 500
+          }}
+        >
           Translate All ({rects.length})
         </button>
 
-        <button onClick={clearSelections}>
+        <button
+          onClick={clearSelections}
+          style={{
+            padding: "6px 12px",
+            border: "1px solid #555",
+            borderRadius: 6,
+            background: "#2d2d2d",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: 500
+          }}
+        >
           Clear
         </button>
 

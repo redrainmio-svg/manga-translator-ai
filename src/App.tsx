@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ScanLine, ZoomIn, ZoomOut, X, Square } from 'lucide-react';
 
@@ -41,7 +41,59 @@ export default function App() {
 
   const [selectionMode, setSelectionMode] = useState(false);
 
+  /**
+   * ⭐ 翻譯任務控制器
+   */
+  const abortRef = useRef<AbortController | null>(null);
+
+  /**
+   * ⭐ Ctrl+V 貼圖支援
+   */
+  useEffect(() => {
+
+    const handlePaste = (event: ClipboardEvent) => {
+
+      const items = event.clipboardData?.items;
+
+      if (!items) return;
+
+      for (const item of items) {
+
+        if (item.type.startsWith("image/")) {
+
+          const file = item.getAsFile();
+
+          if (file) {
+            handleImageSelect(file);
+          }
+
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+    };
+
+  }, []);
+
+  const stopCurrentTranslation = () => {
+
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+
+    setIsLoading(false);
+    setLoadingStatus("");
+  };
+
   const handleImageSelect = (file: File) => {
+
+    stopCurrentTranslation();
 
     const reader = new FileReader();
 
@@ -70,17 +122,27 @@ export default function App() {
 
   const handleTranslate = async (base64Data: string, mime: string) => {
 
+    abortRef.current = new AbortController();
+
     setIsLoading(true);
     setLoadingStatus("ANALYZING EVIDENCE...");
     setError(null);
 
     try {
 
-      const data = await translateImage(base64Data, mime);
+      const data = await translateImage(
+        base64Data,
+        mime,
+        undefined,
+        undefined,
+        abortRef.current.signal
+      );
 
       setResult(prev => mergeResults(prev, data));
 
     } catch (err: any) {
+
+      if (err?.name === "AbortError") return;
 
       console.error(err);
 
@@ -107,7 +169,8 @@ export default function App() {
               matches[2],
               matches[1],
               undefined,
-              "gemini-2.5-pro"
+              "gemini-2.5-pro",
+              abortRef.current?.signal
             );
 
             setResult(prev => mergeResults(prev, safeData));
@@ -134,8 +197,12 @@ export default function App() {
     }
   };
 
-  // ⭐ 新增：批次翻譯框選區域
+  /**
+   * ⭐ 框選翻譯
+   */
   const handleManualCrops = async (crops: string[]) => {
+
+    stopCurrentTranslation();
 
     setIsLoading(true);
     setLoadingStatus("ANALYZING SELECTED AREAS...");
@@ -150,6 +217,8 @@ export default function App() {
         const data = await translateImage(crop, "image/png");
         results.push(data);
       }
+
+      if (results.length === 0) return;
 
       const merged: TranslationResult = {
         ...results[0],
@@ -171,10 +240,19 @@ export default function App() {
 
   const handleReset = () => {
 
+    stopCurrentTranslation();
+
     setImage(null);
     setResult(null);
     setZoom(1);
     setError(null);
+  };
+
+  const toggleSelectionMode = () => {
+
+    stopCurrentTranslation();
+
+    setSelectionMode(v => !v);
   };
 
   return (
@@ -236,7 +314,7 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => setSelectionMode(v => !v)}
+                  onClick={toggleSelectionMode}
                   className={`p-2 ${
                     selectionMode ? "text-indigo-400" : "text-zinc-400"
                   }`}

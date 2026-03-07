@@ -57,7 +57,7 @@ app.post("/api/translate", async (req, res) => {
 
     // ---------- 第一階段：正常 Vision 分析 ----------
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-2.5-flash",
       contents
     });
 
@@ -84,7 +84,7 @@ app.post("/api/translate", async (req, res) => {
 `;
 
         const retry = await ai.models.generateContent({
-          model: "gemini-2.5-pro",
+          model: "gemini-2.5-flash",
           contents: [
             {
               role: "user",
