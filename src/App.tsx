@@ -15,7 +15,6 @@ function mergeResults(
 ): TranslationResult {
 
   if (!prev) return next;
-
   if (!prev.items) return next;
 
   return {
@@ -41,14 +40,8 @@ export default function App() {
 
   const [selectionMode, setSelectionMode] = useState(false);
 
-  /**
-   * ⭐ 翻譯任務控制器
-   */
   const abortRef = useRef<AbortController | null>(null);
 
-  /**
-   * ⭐ Ctrl+V 貼圖支援
-   */
   useEffect(() => {
 
     const handlePaste = (event: ClipboardEvent) => {
@@ -178,7 +171,6 @@ export default function App() {
           }
 
         } catch (filterErr) {
-
           console.error("Filter failed:", filterErr);
         }
       }
@@ -197,9 +189,6 @@ export default function App() {
     }
   };
 
-  /**
-   * ⭐ 框選翻譯
-   */
   const handleManualCrops = async (crops: string[]) => {
 
     stopCurrentTranslation();
@@ -274,7 +263,7 @@ export default function App() {
 
       </header>
 
-      <main className="flex flex-1 overflow-hidden">
+      <main className="flex flex-col md:flex-row flex-1 overflow-hidden">
 
         <div className="flex-1 flex flex-col relative bg-zinc-950">
 
@@ -292,13 +281,9 @@ export default function App() {
           ) : (
 
             <>
-
               <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded">
 
-                <button
-                  onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
-                  className="p-2 text-zinc-400 hover:text-white"
-                >
+                <button onClick={() => setZoom(z => Math.max(0.5, z - 0.25))} className="p-2 text-zinc-400 hover:text-white">
                   <ZoomOut size={16} />
                 </button>
 
@@ -306,81 +291,46 @@ export default function App() {
                   {Math.round(zoom * 100)}%
                 </span>
 
-                <button
-                  onClick={() => setZoom(z => Math.min(3, z + 0.25))}
-                  className="p-2 text-zinc-400 hover:text-white"
-                >
+                <button onClick={() => setZoom(z => Math.min(3, z + 0.25))} className="p-2 text-zinc-400 hover:text-white">
                   <ZoomIn size={16} />
                 </button>
 
-                <button
-                  onClick={toggleSelectionMode}
-                  className={`p-2 ${
-                    selectionMode ? "text-indigo-400" : "text-zinc-400"
-                  }`}
-                >
+                <button onClick={toggleSelectionMode} className={`p-2 ${selectionMode ? "text-indigo-400" : "text-zinc-400"}`}>
                   <Square size={16} />
                 </button>
 
-                <button
-                  onClick={handleReset}
-                  className="p-2 text-red-400"
-                >
+                <button onClick={handleReset} className="p-2 text-red-400">
                   <X size={16} />
                 </button>
 
               </div>
 
-              <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
+              <div className="flex-1 flex items-center justify-center p-4 md:p-8 overflow-auto">
 
                 {selectionMode ? (
-
-                  <SelectionCanvas
-                    imageSrc={image}
-                    onCropAll={handleManualCrops}
-                  />
-
+                  <SelectionCanvas imageSrc={image} onCropAll={handleManualCrops}/>
                 ) : (
-
-                  <motion.div
-                    animate={{ scale: zoom }}
-                    className="shadow-xl"
-                  >
-
-                    <img
-                      src={image}
-                      alt="Evidence"
-                      className="max-h-[85vh] object-contain"
-                    />
-
+                  <motion.div animate={{ scale: zoom }} className="shadow-xl">
+                    <img src={image} alt="Evidence" className="max-h-[85vh] object-contain"/>
                   </motion.div>
-
                 )}
 
               </div>
-
             </>
-
           )}
-
         </div>
 
-        <div className="w-[420px] border-l border-zinc-800 bg-zinc-900 flex flex-col">
+        <div className="w-full md:w-[420px] border-l border-zinc-800 bg-zinc-900 flex flex-col">
 
           {error ? (
 
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-
-              <X className="text-red-400 mb-4" />
-
-              <p className="text-sm text-zinc-400 mb-4">
-                {error}
-              </p>
+              <X className="text-red-400 mb-4"/>
+              <p className="text-sm text-zinc-400 mb-4">{error}</p>
 
               <button
                 onClick={() => {
                   if (!image) return;
-
                   const matches = image.match(/^data:(.+);base64,(.+)$/);
                   if (matches) handleTranslate(matches[2], matches[1]);
                 }}
@@ -388,7 +338,6 @@ export default function App() {
               >
                 Retry
               </button>
-
             </div>
 
           ) : (
